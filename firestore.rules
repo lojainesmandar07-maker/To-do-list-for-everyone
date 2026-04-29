@@ -1,0 +1,181 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() { return request.auth != null && request.auth.uid != null; }
+    function isAdmin() { 
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.email == 'lojainesmandar07@gmail.com'
+      ); 
+    }
+    function isOwner(uid) { return isSignedIn() && request.auth.uid == uid; }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+
+    // --- Validations ---
+    function isValidGlobalAsset(data) {
+      return data.keys().hasAll(['type', 'url', 'createdAt']) && 
+             data.type in ['character', 'clothing', 'decal'] &&
+             data.url is string && 
+             data.createdAt == request.time &&
+             (data.keys().hasAll(['characterId', 'x', 'y', 'width']) ? 
+                (data.characterId is string && data.x is number && data.y is number && data.width is number) 
+                : true) &&
+             (data.keys().hasAll(['category']) ? 
+                (data.category is string && data.category.size() <= 50) 
+                : true);
+    }
+
+    function isValidUserSettings(data) {
+      return data.keys().hasAll(['userId']) && 
+             data.userId == request.auth.uid &&
+             data.get('avatarUrl', '') is string && data.get('avatarUrl', '').size() <= 1000000 &&
+             data.get('customBgUrl', '') is string && data.get('customBgUrl', '').size() <= 1000000 &&
+             data.get('signBgUrl', '') is string && data.get('signBgUrl', '').size() <= 1000000 &&
+             data.get('boardBgUrl', '') is string && data.get('boardBgUrl', '').size() <= 1000000 &&
+             (data.get('fontMode', 'Dark') in ['Light', 'Dark']);
+    }
+
+    function isValidTask(data) {
+      return data.keys().hasAll(['userId', 'text', 'completed', 'dateCategory', 'isDaily', 'createdAt']) &&
+             data.userId == request.auth.uid &&
+             data.text is string && data.text.size() <= 500 &&
+             data.completed is bool &&
+             data.dateCategory is string && data.dateCategory.size() <= 100 &&
+             data.isDaily is bool &&
+             data.createdAt == request.time;
+    }
+
+    function isValidGoal(data) {
+      return data.keys().hasAll(['userId', 'title', 'details', 'completed', 'createdAt']) &&
+             data.userId == request.auth.uid &&
+             data.title is string && data.title.size() <= 200 &&
+             data.details is string && data.details.size() <= 1000 &&
+             data.completed is bool &&
+             data.createdAt == request.time;
+    }
+
+    function isValidMemory(data) {
+      return data.keys().hasAll(['userId', 'url', 'date', 'note', 'createdAt']) &&
+             data.userId == request.auth.uid &&
+             data.url is string && data.url.size() <= 1000000 &&
+             data.date is string && data.date.size() <= 100 &&
+             data.note is string && data.note.size() <= 2000 &&
+             data.createdAt == request.time;
+    }
+
+    function isValidCustomAsset(data) {
+       return data.keys().hasAll(['type', 'url', 'createdAt']) && 
+             data.keys().size() <= 4 &&
+             data.type in ['character', 'clothing', 'decal'] &&
+             data.url is string && data.url.size() <= 1000000 &&
+             data.createdAt == request.time;
+    }
+
+    function isValidDecorationObject(data) {
+      return data.keys().hasAll(['userId', 'cat', 'src', 'x', 'y', 'width', 'flip', 'isLocked']) &&
+             data.userId == request.auth.uid &&
+             data.cat in ['clothing', 'decal', 'character'] &&
+             data.src is string && data.src.size() <= 1000000 &&
+             data.x is number && data.y is number &&
+             data.width is number && data.flip is number &&
+             data.isLocked is bool;
+    }
+
+    // --- Rules ---
+    match /admins/{userId} {
+      allow get: if isValidId(userId) && (isAdmin() || request.auth.uid == userId);
+      allow list: if isAdmin();
+      allow create, update, delete: if false; // Only manageable from Firebase Console
+    }
+
+    match /globalAssets/{assetId} {
+      allow get: if isValidId(assetId) && isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isAdmin() && isValidId(assetId) && isValidGlobalAsset(incoming());
+      allow update: if isAdmin() && isValidId(assetId) && incoming().diff(existing()).affectedKeys().hasOnly(['type', 'url']);
+      allow delete: if isAdmin() && isValidId(assetId);
+    }
+
+    match /users/{userId} {
+      allow get: if isValidId(userId) && isOwner(userId);
+      allow list: if isOwner(userId);
+
+      match /settings/{settingId} {
+        allow get: if isValidId(settingId) && isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(settingId) && isValidUserSettings(incoming());
+        allow update: if isOwner(userId) && isValidId(settingId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['avatarUrl', 'customBgUrl', 'signBgUrl', 'boardBgUrl', 'fontMode']);
+        // Users can't delete their main settings doc to prevent broken states, but they can update fields to empty.
+      }
+
+      match /tasks/{taskId} {
+        allow get: if isValidId(taskId) && isOwner(userId);
+        allow list: if isOwner(userId) && resource.data.userId == request.auth.uid;
+        allow create: if isOwner(userId) && isValidId(taskId) && isValidTask(incoming());
+        allow update: if isOwner(userId) && isValidId(taskId) && 
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         ((incoming().diff(existing()).affectedKeys().hasOnly(['completed'])) ||
+                          (incoming().diff(existing()).affectedKeys().hasOnly(['text', 'dateCategory', 'isDaily'])));
+        allow delete: if isOwner(userId) && isValidId(taskId);
+      }
+
+      match /goals/{goalId} {
+        allow get: if isValidId(goalId) && isOwner(userId);
+        allow list: if isOwner(userId) && resource.data.userId == request.auth.uid;
+        allow create: if isOwner(userId) && isValidId(goalId) && isValidGoal(incoming());
+        allow update: if isOwner(userId) && isValidId(goalId) && 
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['completed']);
+        allow delete: if isOwner(userId) && isValidId(goalId);
+      }
+
+      match /memories/{memoryId} {
+        allow get: if isValidId(memoryId) && isOwner(userId);
+        allow list: if isOwner(userId) && resource.data.userId == request.auth.uid;
+        allow create: if isOwner(userId) && isValidId(memoryId) && isValidMemory(incoming());
+        allow update: if isOwner(userId) && isValidId(memoryId) && 
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().url == existing().url &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['note']);
+        allow delete: if isOwner(userId) && isValidId(memoryId);
+      }
+
+      match /customAssets/{assetId} {
+        allow get: if isValidId(assetId) && isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(assetId) && isValidCustomAsset(incoming());
+        allow update: if isOwner(userId) && isValidId(assetId) && 
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['url']); // Usually don't update this but maybe?
+        allow delete: if isOwner(userId) && isValidId(assetId);
+      }
+
+      match /decorations/{decorationId} {
+        allow get: if isValidId(decorationId) && isOwner(userId);
+        allow list: if isOwner(userId) && resource.data.userId == request.auth.uid;
+        allow create: if isOwner(userId) && isValidId(decorationId) && isValidDecorationObject(incoming());
+        allow update: if isOwner(userId) && isValidId(decorationId) && 
+                         incoming().userId == existing().userId &&
+                         incoming().cat == existing().cat &&
+                         incoming().src == existing().src &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['x', 'y', 'width', 'flip', 'isLocked']);
+        allow delete: if isOwner(userId) && isValidId(decorationId);
+      }
+    }
+  }
+}

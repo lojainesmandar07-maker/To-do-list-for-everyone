@@ -1,0 +1,129 @@
+{
+  "entities": {
+    "Admin": {
+      "title": "Admin",
+      "description": "Indicates a user is an admin",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" }
+      },
+      "required": ["email"]
+    },
+    "GlobalAsset": {
+      "title": "Global Asset",
+      "description": "A character, decal, or clothing item that anyone can use.",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["character", "clothing", "decal"] },
+        "url": { "type": "string", "description": "Base64 or URL" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["type", "url", "createdAt"]
+    },
+    "UserSettings": {
+      "title": "User Settings",
+      "description": "User specific customizations",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "avatarUrl": { "type": "string" },
+        "customBgUrl": { "type": "string" },
+        "signBgUrl": { "type": "string" },
+        "boardBgUrl": { "type": "string" },
+        "fontMode": { "type": "string", "enum": ["Light", "Dark"] }
+      },
+      "required": ["userId"]
+    },
+    "Task": {
+      "title": "Task",
+      "description": "User task item",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "text": { "type": "string" },
+        "completed": { "type": "boolean" },
+        "dateCategory": { "type": "string" },
+        "isDaily": { "type": "boolean" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["userId", "text", "completed", "dateCategory", "isDaily"]
+    },
+    "Goal": {
+      "title": "Goal",
+      "description": "User goal item",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "details": { "type": "string" },
+        "completed": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["userId", "title", "details", "completed"]
+    },
+    "Memory": {
+      "title": "Memory",
+      "description": "A snapshot memory",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "url": { "type": "string" },
+        "date": { "type": "string" },
+        "note": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["userId", "url", "date", "note"]
+    },
+    "DecorationObject": {
+      "title": "Decoration Object",
+      "description": "A placed decoration or scene character setting",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "cat": { "type": "string", "enum": ["clothing", "decal", "character"] },
+        "src": { "type": "string" },
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "width": { "type": "number" },
+        "flip": { "type": "number" },
+        "isLocked": { "type": "boolean" }
+      },
+      "required": ["userId", "cat", "src", "x", "y", "width", "flip", "isLocked"]
+    }
+  },
+  "firestore": {
+    "admins/{userId}": {
+      "schema": { "$ref": "#/entities/Admin" },
+      "description": "Admin users list"
+    },
+    "globalAssets/{assetId}": {
+      "schema": { "$ref": "#/entities/GlobalAsset" },
+      "description": "Global assets shared to all users"
+    },
+    "users/{userId}/settings/{settingId}": {
+      "schema": { "$ref": "#/entities/UserSettings" },
+      "description": "User customization profile"
+    },
+    "users/{userId}/tasks/{taskId}": {
+      "schema": { "$ref": "#/entities/Task" },
+      "description": "User tasks"
+    },
+    "users/{userId}/goals/{goalId}": {
+      "schema": { "$ref": "#/entities/Goal" },
+      "description": "User long-term goals"
+    },
+    "users/{userId}/memories/{memoryId}": {
+      "schema": { "$ref": "#/entities/Memory" },
+      "description": "User memories and diary"
+    },
+    "users/{userId}/customAssets/{assetId}": {
+      "schema": { "$ref": "#/entities/GlobalAsset" },
+      "description": "User's own uploaded clothes/stickers (structurally identical to GlobalAsset, but user-owned)."
+    },
+    "users/{userId}/decorations/{decorationId}": {
+      "schema": { "$ref": "#/entities/DecorationObject" },
+      "description": "User's placed objects in the room/scene"
+    }
+  }
+}
