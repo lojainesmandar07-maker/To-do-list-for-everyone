@@ -1,0 +1,201 @@
+@import "tailwindcss";
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(142, 68, 36, 0.1);
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(142, 68, 36, 0.3);
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(142, 68, 36, 0.5);
+}
+
+@theme {
+  --font-script: 'Caveat', cursive;
+  --font-serif: 'Fredoka', sans-serif;
+  --font-sans: 'Quicksand', sans-serif;
+
+  --color-wood-light: #e8d0b3;
+  --color-wood-mid: #d8b792;
+  --color-wood-dark: #6e402a;
+  --color-wood-shadow: #8b6b52;
+  --color-paper: #fcf8f2;
+  --color-paper-shade: #f2e7d5;
+  --color-text-brown: #4d2b18;
+
+  --color-pink-muted: #bd7379;
+  --color-purple-muted: #6e5170;
+  --color-mauve-muted: #a68b97;
+  --color-teal-muted: #3d606f;
+
+  --shadow-wood: 0 12px 24px -4px rgba(41, 25, 10, 0.5);
+  --shadow-paper: 0 4px 6px -2px rgba(61, 35, 20, 0.1);
+}
+
+body {
+  background-color: #2b2520;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(94, 80, 70, 0.4) 0%, transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(77, 65, 55, 0.4) 0%, transparent 40%);
+  color: var(--color-text-brown);
+  font-family: var(--font-serif);
+  margin: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Wood styling for main signboards */
+.wood-board {
+  background-color: var(--color-wood-light);
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 12px,
+    rgba(110, 64, 42, 0.04) 12px,
+    rgba(110, 64, 42, 0.04) 24px
+  );
+  box-shadow: var(--shadow-wood);
+}
+
+.wood-inner {
+  background-color: var(--color-paper-shade);
+  border: 1.5px solid var(--color-wood-mid);
+  box-shadow: inset 0 2px 8px rgba(110, 64, 42, 0.15);
+}
+
+/* Specific Pill Patterns */
+.pattern-stars {
+  background-size: 20px 20px;
+  background-image: 
+    radial-gradient(circle at 50% 50%, rgba(255,255,255,0.8) 1px, transparent 1.5px),
+    radial-gradient(circle at 20% 80%, rgba(255,255,255,0.6) 1px, transparent 1.5px);
+}
+
+.pattern-damask {
+  background-size: 16px 16px;
+  background-image: 
+    radial-gradient(circle at 50% 50%, rgba(255,255,255,0.1) 4px, transparent 5px),
+    radial-gradient(circle at 0% 100%, rgba(255,255,255,0.1) 4px, transparent 5px);
+}
+
+.pattern-clouds {
+  background-size: 30px 20px;
+  background-image: 
+    radial-gradient(circle at 30% 80%, rgba(255,255,255,0.15) 6px, transparent 7px),
+    radial-gradient(circle at 70% 90%, rgba(255,255,255,0.15) 8px, transparent 9px);
+}
+
+/* Stitched border for the paper */
+.stitch-border {
+  outline: 2px dashed #bba18a;
+  outline-offset: -10px;
+}
+
+/* Theme overrides for light fonts on dark custom backgrounds */
+.theme-light-fonts .dynamic-text,
+.theme-light-fonts .dynamic-text-container .text-wood-dark,
+.theme-light-fonts .dynamic-text-container .text-text-brown,
+.theme-light-fonts .dynamic-text-container .text-\[\#4d2b18\],
+.theme-light-fonts .dynamic-text-container .text-\[\#8E4424\],
+.theme-light-fonts .dynamic-text-container .text-wood-dark\/80,
+.theme-light-fonts .dynamic-text-container .text-wood-dark\/70,
+.theme-light-fonts .dynamic-text-container .text-text-brown\/70,
+.theme-light-fonts .dynamic-text-container .text-text-brown\/90 {
+  color: #ffffff !important;
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.7);
+}
+
+.theme-light-fonts .dynamic-text-muted,
+.theme-light-fonts .dynamic-text-container .text-wood-dark\/60,
+.theme-light-fonts .dynamic-text-container .text-wood-dark\/50,
+.theme-light-fonts .dynamic-text-container .text-wood-dark\/40,
+.theme-light-fonts .dynamic-text-container .text-text-brown\/60 {
+  color: rgba(255, 255, 255, 0.85) !important;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.theme-light-fonts .dynamic-border,
+.theme-light-fonts .dynamic-text-container .border-wood-dark,
+.theme-light-fonts .dynamic-text-container .border-wood-dark\/20,
+.theme-light-fonts .dynamic-text-container .border-wood-dark\/30,
+.theme-light-fonts .dynamic-text-container .border-wood-dark\/40,
+.theme-light-fonts .dynamic-text-container .border-wood-dark\/50 {
+  border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Exempt specific elements where dark text is required because of bright background */
+.theme-light-fonts .dynamic-text-container input,
+.theme-light-fonts .dynamic-text-container textarea,
+.theme-light-fonts .dynamic-text-container .bg-white .text-wood-dark,
+.theme-light-fonts .dynamic-text-container .bg-white .text-wood-dark\/70,
+.theme-light-fonts .dynamic-text-container .bg-white .text-text-brown,
+.theme-light-fonts .dynamic-text-container .bg-white\/80 .text-wood-dark,
+.theme-light-fonts .dynamic-text-container .bg-white\/80 .text-text-brown,
+.theme-light-fonts .dynamic-text-container .bg-white\/70 .text-wood-dark,
+.theme-light-fonts .dynamic-text-container .bg-white\/70 .text-wood-dark\/70,
+.theme-light-fonts .dynamic-text-container .bg-white\/70 .text-text-brown,
+.theme-light-fonts .dynamic-text-container .text-wood-dark.border-wood-dark\/10 {
+  color: #4d2b18 !important;
+  text-shadow: none !important;
+}
+.screw {
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(135deg, #e5e7eb, #9ca3af);
+  border-radius: 50%;
+  border: 1px solid #6b7280;
+  box-shadow: inset 0 -1px 3px rgba(0,0,0,0.4), 1px 2px 3px rgba(0,0,0,0.3);
+  position: absolute;
+  z-index: 10;
+}
+.screw::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 15%;
+  right: 15%;
+  height: 1.5px;
+  background: #4b5563;
+  transform: translateY(-50%) rotate(-45deg);
+}
+
+/* Lined notebook paper for journal */
+.lined-paper {
+  background-image: repeating-linear-gradient(
+    transparent,
+    transparent 31px,
+    #cfc2b3 31px,
+    #cfc2b3 32px
+  );
+  line-height: 32px;
+}
+
+/* Scroll pseudo-elements for the greeting indicator */
+.scroll-banner {
+  background-color: #f0e1cb;
+  border: 1px solid #cfb89a;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  position: relative;
+}
+.scroll-banner::before, .scroll-banner::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 12px;
+  background: #e1ccb0;
+  border: 1px solid #c0a47f;
+  border-radius: 4px;
+}
+.scroll-banner::before {
+  left: -6px;
+}
+.scroll-banner::after {
+  right: -6px;
+}
